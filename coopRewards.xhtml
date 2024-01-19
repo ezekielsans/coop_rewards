@@ -23,37 +23,64 @@
 
             <f:event type="preRenderView"
                      listener="#{coopRewardsServicesModel.init()}"/>
+
+            <f:event type="preRenderView"
+                     listener="#{coopRewardsInputModel.init()}"/>
+
             <f:event type="preRenderView"
                      listener="#{controllerCoopRewards.init()}"/>
-
+            <prcc:growl/>
             <h:form id="accessMessage" 
                     rendered="#{not portalData.showContent}">
                 <h:outputText value="#{portalData.message}"/>
             </h:form>
-
             <h:form id="indexForm" 
                     rendered="#{portalData.showContent}">
+
                 <div class="ui-grid ui-grid-responsive">
-
                     <prcc:confirmDialog/>
-
                     <prcc:ajaxStatus/>
-
                     <prcc:growl/>
-                    <p:panel>
+                    <!-- <h:outputScript library="js"
+                            name="coopRewardsValidation.js"/>-->
+                    <p:panel style="margin-left: 2rem;border: none">
+                        <div class="ui-grid-row">
+                            <div class="ui-grid-col-1">
+                                <p:outputLabel id="renderMem"
+                                               value="Member"
+                                               style="background-color:green;"
+                                               rendered="#{not empty coopRewardsInputModel.accountNo}"/>
 
-                        <div class="ui-grid-row">  
-                            <div class="ui-grid-col-2">
-                                <p:outputLabel value="Account no. :"/>
+                                <p:outputLabel id="renderNonMem"
+                                               value="Non-Member"
+                                               style="background-color:yellow;"
+                                               rendered="#{coopRewardsInputModel.accountNo eq null}"/>
                             </div>
                             <div class="ui-grid-col-2">
-                                <p:inputText  
-                                    value="#{coopRewardsInputModel.accountNo}">
+                                <p:outputLabel id="output" 
+                                               value="#{coopRewardsInputModel.coopRewardsView[coopRewardsInputModel.index].name}" 
+                                               style="width: 315px"/>
+                            </div>
+                        </div>
+
+                        <div class="ui-grid-row">  
+                            <div class="ui-grid-col-1">
+                                <p:outputLabel value="Account no. :"/>
+                            </div>
+
+
+                            <div class="ui-grid-col-2">
+                                <p:inputText  id="accountNoField"
+                                              value="#{coopRewardsInputModel.accountNo}" >
+                                    <p:ajax event="change"
+                                            process="@this"
+                                            update="@this,:#{p:component('renderMem')},:#{p:component('renderNonMem')},:#{p:component('output')},:#{p:component('submitButton')}"
+                                            listener="#{controllerCoopRewards.checkAcctno()}"/>
                                 </p:inputText>
                             </div>
                         </div>
                         <div class="ui-grid-row">
-                            <div class="ui-grid-col-2">
+                            <div class="ui-grid-col-1">
                                 <p:outputLabel value="Amount: "/>
                             </div>
                             <div class="ui-grid-col-2">
@@ -65,12 +92,12 @@
                                                      pattern="###,###.###"/>
                                     <p:ajax event="blur"
                                             update="@this"
-                                            process="@this"/>
+                                            process="@this , :#{p:component('submitButton')}"/>
                                 </p:inputText>
                             </div>
                         </div>
                         <div class="ui-grid-row">  
-                            <div class="ui-grid-col-2">
+                            <div class="ui-grid-col-1">
                                 <p:outputLabel value="Service: "/>
                             </div>
                             <div class="ui-grid-col-2">
@@ -92,7 +119,7 @@
                                             update="@this, "/>
                                     <p:ajax event="itemSelect"
                                             process="@this"
-                                            update="@this, "/>
+                                            update="@this,:#{p:component('submitButton')} "/>
                                 </p:selectOneMenu>
                             </div>
                         </div>
@@ -105,13 +132,20 @@
                                               icon="ui-icon-disk"
                                               styleClass="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-arrow-1-w"
                                               style="margin-right: 7px"
-                                              >
+                                              update="@this,:#{p:component('growl')}"
+                                              disabled="#{empty coopRewardsInputModel.accountNo and empty coopRewardsInputModel.serviceId and empty coopRewardsInputModel.amount }">
 
                             </p:commandButton>
+
                         </div>
-                        <!--disabled="#1{empty coopRewardsInputModel.accountNo && empty coopRewardsInputModel.serviceId && empty coopRewardsInputModel.amount }"-->
                     </p:panel>
                 </div>
+
+
+
+
+
+
 
             </h:form>
         </ui:define>
