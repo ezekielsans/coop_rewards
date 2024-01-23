@@ -5,10 +5,14 @@
  */
 package model;
 
+import bean.CustomEntityManagerFactory;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
 
 /**
  *
@@ -18,28 +22,23 @@ import javax.faces.bean.SessionScoped;
 @SessionScoped
 public class CoopRewardsInputModel implements serializable {
 
-    private Integer serviceId;
-    private String serviceValue;
-    private String accountNo;
-    private BigDecimal amount;
-
     public CoopRewardsInputModel() {
     }
 
-    public Integer getServiceId() {
-        return serviceId;
+    private String accountNo;
+    private BigDecimal amount;
+    private CoopRewardsView coopRewardsView; // single
+    @ManagedProperty(value = "#{customEntityManagerFactory}")
+    private CustomEntityManagerFactory customEntityManagerFactory;
+    @ManagedProperty(value = "#{coopReServices}")
+    private List<CoopReServices> coopReServices;
+
+    public CustomEntityManagerFactory getCustomEntityManagerFactory() {
+        return customEntityManagerFactory == null ? customEntityManagerFactory = new CustomEntityManagerFactory() : customEntityManagerFactory;
     }
 
-    public void setServiceId(Integer serviceId) {
-        this.serviceId = serviceId;
-    }
-
-    public String getServiceValue() {
-        return serviceValue;
-    }
-
-    public void setServiceValue(String serviceValue) {
-        this.serviceValue = serviceValue;
+    public void setCustomEntityManagerFactory(CustomEntityManagerFactory customEntityManagerFactory) {
+        this.customEntityManagerFactory = customEntityManagerFactory;
     }
 
     public String getAccountNo() {
@@ -56,6 +55,39 @@ public class CoopRewardsInputModel implements serializable {
 
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public CoopRewardsView getCoopRewardsView() {
+        return coopRewardsView == null ? coopRewardsView = new CoopRewardsView() : coopRewardsView;
+    }
+
+    public void setCoopRewardsView(CoopRewardsView coopRewardsView) {
+        this.coopRewardsView = coopRewardsView;
+    }
+
+    public List<CoopReServices> getCoopReServices() {
+        return coopReServices == null ? coopReServices = new ArrayList<>() : coopReServices;
+    }
+
+    public void setCoopReServices(List<CoopReServices> coopReServices) {
+        this.coopReServices = coopReServices;
+    }
+
+    public void init() {
+        if (FacesContext.getCurrentInstance().isPostback() == false) {
+            setCoopReServices(getCustomEntityManagerFactory().getLportalMemOrgEntityManagerFactory().createEntityManager().createQuery(""
+                    + "SELECT s FROM CoopReServices s ").getResultList());
+
+            clear();
+
+        }
+
+    }
+
+    public void clear() {
+        setAccountNo(null);
+        setAmount(null);
+
     }
 
 }
