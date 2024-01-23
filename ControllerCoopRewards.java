@@ -6,18 +6,20 @@
 package bean;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
+
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
+
 import java.util.List;
 import javax.faces.application.FacesMessage;
-
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.RequestScoped;
 import javax.faces.context.FacesContext;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import model.CoopRewardsInputModel;
+import model.CoopRewardsView;
 
 /**
  *
@@ -107,6 +109,45 @@ public class ControllerCoopRewards implements Serializable {
      *
      * @return
      */
+    public void checkAcctno() throws SQLException {
+        String query;
+        String acctno = getCoopRewardsInputModel().getAccountNo();
+        if (acctno != null && !acctno.isEmpty()) {
+
+            query = "SELECT c "
+                    + "FROM CoopRewardsView c "
+                    + " WHERE c.scAcctno = :acctno ";
+            try {
+                EntityManager entityManager = getCustomEntityManagerFactory().getLportalMemOrgEntityManagerFactory().createEntityManager();
+                TypedQuery<CoopRewardsView> typedQuery = entityManager.createQuery(query, CoopRewardsView.class);
+                typedQuery.setParameter("acctno", acctno);
+
+                List<CoopRewardsView> results = typedQuery.getResultList();
+                try {
+
+                    int currentIndex = getCoopRewardsInputModel().getIndex();
+
+                    if (currentIndex == 0) {
+                        getCoopRewardsInputModel().getCoopRewardsView().get(0).setName("Non-Member");
+                    } else {
+                        if (!results.isEmpty()) {
+                            getCoopRewardsInputModel().setCoopRewardsView(results);
+                            getCoopRewardsInputModel().setIndex(0);
+
+                        }
+
+                    }
+
+                } catch (Exception e) {
+                    e.getStackTrace();
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void submit() throws SQLException {
         getDbConnection().setDbUserName(String.valueOf(getPortalData().getLiferayFacesContext().getUser().getUserId()));
         getDbConnection().lportalMemOrgConnection = getDbConnection().connectToLportalMemOrg();
@@ -136,16 +177,17 @@ public class ControllerCoopRewards implements Serializable {
     }
 
     public void init() {
-
         if (FacesContext.getCurrentInstance().isPostback() == false) {
-            setCoopRewardsInputModel(null);
+            clear();
 
         }
 
     }
 
     public void clear() {
-        setCoopRewardsInputModel(null);
+        getCoopRewardsInputModel().setAccountNo(null);
+        getCoopRewardsInputModel().setAmount(null);
+
     }
 
 }
