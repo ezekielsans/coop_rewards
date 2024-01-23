@@ -10,14 +10,11 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.sql.Types;
 
-import java.util.List;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.RequestScoped;
 import javax.faces.context.FacesContext;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import model.CoopRewardsInputModel;
 import model.CoopRewardsView;
 
@@ -112,40 +109,22 @@ public class ControllerCoopRewards implements Serializable {
     public void checkAcctno() throws SQLException {
         String query;
         String acctno = getCoopRewardsInputModel().getAccountNo();
-        if (acctno != null && !acctno.isEmpty()) {
+        try {
+            if (acctno != null && !acctno.isEmpty()) {
 
-            query = "SELECT c "
-                    + "FROM CoopRewardsView c "
-                    + " WHERE c.scAcctno = :acctno ";
-            try {
-                EntityManager entityManager = getCustomEntityManagerFactory().getLportalMemOrgEntityManagerFactory().createEntityManager();
-                TypedQuery<CoopRewardsView> typedQuery = entityManager.createQuery(query, CoopRewardsView.class);
-                typedQuery.setParameter("acctno", acctno);
-
-                List<CoopRewardsView> results = typedQuery.getResultList();
-                try {
-
-                    int currentIndex = getCoopRewardsInputModel().getIndex();
-
-                    if (currentIndex == 0) {
-                        getCoopRewardsInputModel().getCoopRewardsView().get(0).setName("Non-Member");
-                    } else {
-                        if (!results.isEmpty()) {
-                            getCoopRewardsInputModel().setCoopRewardsView(results);
-                            getCoopRewardsInputModel().setIndex(0);
-
-                        }
-
-                    }
-
-                } catch (Exception e) {
-                    e.getStackTrace();
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
+                query = "SELECT c "
+                        + "FROM CoopRewardsView c "
+                        + " WHERE c.scAcctno = :acctno ";
+                getCoopRewardsInputModel().setCoopRewardsView((CoopRewardsView) getCustomEntityManagerFactory().getLportalMemOrgEntityManagerFactory().createEntityManager().createQuery(query).setParameter("acctno", acctno).getSingleResult());
+                System.out.println("COOP REWARDS VIEW" + getCoopRewardsInputModel().getCoopRewardsView().getName());
             }
+        } catch (Exception e) {
+            System.out.println("Error -Checkacctno " + e.getMessage());
+            System.out.println("Ito yung name " + getCoopRewardsInputModel().getCoopRewardsView().getName());
+            getCoopRewardsInputModel().setCoopRewardsView(new CoopRewardsView());
+            getCoopRewardsInputModel().getCoopRewardsView().setName("Non-Member");
         }
+
     }
 
     public void submit() throws SQLException {
@@ -157,7 +136,7 @@ public class ControllerCoopRewards implements Serializable {
                 getDbConnection().callableStatement.registerOutParameter(1, Types.VARCHAR);
                 getDbConnection().callableStatement.setString(2, ((String) getCoopRewardsInputModel().getAccountNo())); //acctno
                 getDbConnection().callableStatement.setBigDecimal(3, (getCoopRewardsInputModel().getAmount())); //amount
-                getDbConnection().callableStatement.setInt(4, getCoopRewardsInputModel().getServiceId()); //service id
+                getDbConnection().callableStatement.setInt(4, getCoopRewardsInputModel().getCoopReServices().get(0).getServicesId()); //service id
                 getDbConnection().callableStatement.execute();
                 FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_INFO, "Notice", "Data Added Successfully.");
                 FacesContext.getCurrentInstance().addMessage(null, message);
@@ -178,6 +157,8 @@ public class ControllerCoopRewards implements Serializable {
 
     public void init() {
         if (FacesContext.getCurrentInstance().isPostback() == false) {
+            System.out.println("acctno" + getCoopRewardsInputModel().getAccountNo());
+
             clear();
 
         }
