@@ -15,6 +15,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.RequestScoped;
 import javax.faces.context.FacesContext;
+
 import model.CoopRewardsInputModel;
 import model.CoopRewardsView;
 
@@ -130,8 +131,10 @@ public class ControllerCoopRewards implements Serializable {
     public void submit() throws SQLException {
         getDbConnection().setDbUserName(String.valueOf(getPortalData().getLiferayFacesContext().getUser().getUserId()));
         getDbConnection().lportalMemOrgConnection = getDbConnection().connectToLportalMemOrg();
+
         if (getDbConnection().lportalMemOrgConnection != null) {
             try {
+                System.out.println("papasok sa callable");
                 getDbConnection().callableStatement = getDbConnection().lportalMemOrgConnection.prepareCall("{ ? = call submit_coop_rewards(?,?,?)}");
                 getDbConnection().callableStatement.registerOutParameter(1, Types.VARCHAR);
                 getDbConnection().callableStatement.setString(2, ((String) getCoopRewardsInputModel().getAccountNo())); //acctno
@@ -158,7 +161,6 @@ public class ControllerCoopRewards implements Serializable {
     public void init() {
         if (FacesContext.getCurrentInstance().isPostback() == false) {
             System.out.println("acctno" + getCoopRewardsInputModel().getAccountNo());
-
             clear();
 
         }
@@ -168,6 +170,8 @@ public class ControllerCoopRewards implements Serializable {
     public void clear() {
         getCoopRewardsInputModel().setAccountNo(null);
         getCoopRewardsInputModel().setAmount(null);
+        getCoopRewardsInputModel().setServiceName(null);
+        getCoopRewardsInputModel().getCoopRewardsView().setName(null);
 
     }
 
