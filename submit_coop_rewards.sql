@@ -1,3 +1,6 @@
+-- Function: public.submit_coop_rewards(character varying, numeric, integer)
+
+-- DROP FUNCTION public.submit_coop_rewards(character varying, numeric, integer);
 
 CREATE OR REPLACE FUNCTION public.submit_coop_rewards(
     acctno character varying,
@@ -36,3 +39,5 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+ALTER FUNCTION public.submit_coop_rewards(character varying, numeric, integer)
+  OWNER TO postgres;
