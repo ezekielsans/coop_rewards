@@ -39,7 +39,8 @@
                     <prcc:ajaxStatus/>
                     <prcc:growl/>
 
-                    <p:panel style="margin-left: 2rem;border: none">
+                    <p:panel id="coopRewardsPanel"
+                             style="margin-left: 2rem;border: none">
                         <div class="ui-grid-row">
                             <div class="ui-grid-col-1">
                                 <p:outputLabel id="renderMem"
@@ -68,7 +69,7 @@
                                               value="#{coopRewardsInputModel.accountNo}" >
                                     <p:ajax event="change"
                                             process="@this"
-                                            update="@this,:#{p:component('clear')},:#{p:component('output')},:#{p:component('submitButton')},:#{p:component('renderMem')}"
+                                            update="@this,:#{p:component('output')},:#{p:component('submitButton')},:#{p:component('renderMem')}"
                                             listener="#{controllerCoopRewards.checkAcctno()}"/>
                                 </p:inputText>
                             </div>
@@ -86,7 +87,7 @@
                                                      pattern="###,###.###"/>
                                     <p:ajax event="blur"
                                             update="@this"
-                                            process="@this ,:#{p:component('clear')}, :#{p:component('submitButton')}"/>
+                                            process="@this , :#{p:component('submitButton')}"/>
                                 </p:inputText>
                             </div>
                         </div>
@@ -96,7 +97,7 @@
                             </div>
                             <div class="ui-grid-col-2">
                                 <p:selectOneMenu id="serviceType" 
-                                                 value="#{coopRewardsInputModel.coopReServices}"
+                                                 value="#{coopRewardsInputModel.serviceName}"
                                                  style="width: 185px"
                                                  required="true">
                                     <f:selectItem 
@@ -113,11 +114,12 @@
                                             update="@this, "/>
                                     <p:ajax event="itemSelect"
                                             process="@this"
-                                            update="@this,:#{p:component('submitButton')} "/>
+                                            update="@this,:#{p:component('submitButton')}"/>
                                 </p:selectOneMenu>
                             </div>
                         </div>
                         <br/>
+
 
                         <div class="ui-grid-row">
                             <p:commandButton  id="submitButton"
@@ -126,23 +128,21 @@
                                               icon="ui-icon-disk"
                                               styleClass="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-arrow-1-w"
                                               style="margin-right: 7px"
-                                              update="@this,:#{p:component('growl')}"
+                                              update=":#{p:component('growl')}"
                                               disabled="#{empty coopRewardsInputModel.accountNo and empty coopRewardsInputModel.amount }">
 
                             </p:commandButton>
-
                             <div class="ui-grid-col-2">
-                                <p:commandButton  id="clear"
-                                                  value="Clear"
-                                                  actionListener="#{controllerCoopRewards.clear()}"
-                                                  icon=" ui-icon-arrowrefresh-1-w"
-                                                  styleClass="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-arrow-1-w"
-                                                  style="margin-right: 7px"
-                                                  update="@this,:#{p:component('growl')}"
-                                                  disabled="#{empty coopRewardsInputModel.accountNo}">
-
+                                <p:commandButton 
+                                    value="Clear"
+                                    actionListener="#{controllerCoopRewards.clear()}"
+                                    immediate="true"
+                                    ajax="false"
+                                    icon=" ui-icon-arrowrefresh-1-w"
+                                    styleClass="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-arrow-1-w"
+                                    style="margin-right: 7px">
+                                    <p:resetInput target="coopRewardsPanel"/>
                                 </p:commandButton>
-
                             </div>
 
                         </div>
