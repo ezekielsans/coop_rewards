@@ -3,35 +3,64 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package model;
+package bean;
 
-import bean.CustomEntityManagerFactory;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
+
+import java.sql.SQLException;
+import java.sql.Types;
+
+import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
-import javax.faces.bean.SessionScoped;
+import javax.faces.bean.RequestScoped;
 import javax.faces.context.FacesContext;
+
+import model.CoopRewardsInputModel;
+import model.CoopRewardsView;
 
 /**
  *
- * @author mis
+ * @author misteam
  */
 @ManagedBean
-@SessionScoped
-public class CoopRewardsInputModel implements serializable {
+@RequestScoped
+public class ControllerCoopRewards implements Serializable {
 
-    public CoopRewardsInputModel() {
+    /**
+     * Creates a new instance of AssuranceReportController
+     */
+    public ControllerCoopRewards() {
     }
 
-    private String accountNo;
-    private BigDecimal amount;
-    private CoopRewardsView coopRewardsView; // single
+    /**
+     * Properties
+     */
+    @ManagedProperty(value = "#{messages}")
+    private Messages messages;
     @ManagedProperty(value = "#{customEntityManagerFactory}")
     private CustomEntityManagerFactory customEntityManagerFactory;
-    @ManagedProperty(value = "#{coopReServices}")
-    private List<CoopReServices> coopReServices;
+    @ManagedProperty(value = "#{dbConnection}")
+    private DbConnection dbConnection;
+    @ManagedProperty(value = "#{portalData}")
+    private PortalData portalData;
+    @ManagedProperty(value = "#{customDate}")
+    private CustomDate customDate;
+    @ManagedProperty(value = "#{coopRewardsInputModel}")
+    private CoopRewardsInputModel coopRewardsInputModel;
+
+    /**
+     * Getter & Setter
+     *
+     * @return
+     */
+    public Messages getMessages() {
+        return messages;
+    }
+
+    public void setMessages(Messages messages) {
+        this.messages = messages;
+    }
 
     public CustomEntityManagerFactory getCustomEntityManagerFactory() {
         return customEntityManagerFactory == null ? customEntityManagerFactory = new CustomEntityManagerFactory() : customEntityManagerFactory;
@@ -41,43 +70,97 @@ public class CoopRewardsInputModel implements serializable {
         this.customEntityManagerFactory = customEntityManagerFactory;
     }
 
-    public String getAccountNo() {
-        return accountNo;
+    public DbConnection getDbConnection() {
+        return dbConnection == null ? dbConnection = new DbConnection() : dbConnection;
     }
 
-    public void setAccountNo(String accountNo) {
-        this.accountNo = accountNo;
+    public void setDbConnection(DbConnection dbConnection) {
+        this.dbConnection = dbConnection;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
+    public PortalData getPortalData() {
+        return portalData == null ? portalData = new PortalData() : portalData;
     }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
+    public void setPortalData(PortalData portalData) {
+        this.portalData = portalData;
     }
 
-    public CoopRewardsView getCoopRewardsView() {
-        return coopRewardsView == null ? coopRewardsView = new CoopRewardsView() : coopRewardsView;
+    public CustomDate getCustomDate() {
+        return customDate == null ? customDate = new CustomDate() : customDate;
     }
 
-    public void setCoopRewardsView(CoopRewardsView coopRewardsView) {
-        this.coopRewardsView = coopRewardsView;
+    public void setCustomDate(CustomDate customDate) {
+        this.customDate = customDate;
     }
 
-    public List<CoopReServices> getCoopReServices() {
-        return coopReServices == null ? coopReServices = new ArrayList<>() : coopReServices;
+    public CoopRewardsInputModel getCoopRewardsInputModel() {
+        return coopRewardsInputModel == null ? coopRewardsInputModel = new CoopRewardsInputModel() : coopRewardsInputModel;
     }
 
-    public void setCoopReServices(List<CoopReServices> coopReServices) {
-        this.coopReServices = coopReServices;
+    public void setCoopRewardsInputModel(CoopRewardsInputModel coopRewardsInputModel) {
+        this.coopRewardsInputModel = coopRewardsInputModel;
+    }
+
+    /**
+     * Methods
+     *
+     * @return
+     */
+    public void checkAcctno() throws SQLException {
+        String query;
+        String acctno = getCoopRewardsInputModel().getAccountNo();
+        try {
+            if (acctno != null && !acctno.isEmpty()) {
+
+                query = "SELECT c "
+                        + "FROM CoopRewardsView c "
+                        + " WHERE c.scAcctno = :acctno ";
+                getCoopRewardsInputModel().setCoopRewardsView((CoopRewardsView) getCustomEntityManagerFactory().getLportalMemOrgEntityManagerFactory().createEntityManager().createQuery(query).setParameter("acctno", acctno).getSingleResult());
+                System.out.println("COOP REWARDS VIEW" + getCoopRewardsInputModel().getCoopRewardsView().getName());
+            }
+        } catch (Exception e) {
+            System.out.println("Error -Checkacctno " + e.getMessage());
+            System.out.println("Ito yung name " + getCoopRewardsInputModel().getCoopRewardsView().getName());
+            getCoopRewardsInputModel().setCoopRewardsView(new CoopRewardsView());
+            getCoopRewardsInputModel().getCoopRewardsView().setName("Non-Member");
+        }
+
+    }
+
+    public void submit() throws SQLException {
+        getDbConnection().setDbUserName(String.valueOf(getPortalData().getLiferayFacesContext().getUser().getUserId()));
+        getDbConnection().lportalMemOrgConnection = getDbConnection().connectToLportalMemOrg();
+
+        if (getDbConnection().lportalMemOrgConnection != null) {
+            try {
+                System.out.println("papasok sa callable");
+                getDbConnection().callableStatement = getDbConnection().lportalMemOrgConnection.prepareCall("{ ? = call submit_coop_rewards(?,?,?)}");
+                getDbConnection().callableStatement.registerOutParameter(1, Types.VARCHAR);
+                getDbConnection().callableStatement.setString(2, ((String) getCoopRewardsInputModel().getAccountNo())); //acctno
+                getDbConnection().callableStatement.setBigDecimal(3, (getCoopRewardsInputModel().getAmount())); //amount
+                getDbConnection().callableStatement.setInt(4, getCoopRewardsInputModel().getCoopReServices().get(0).getServicesId()); //service id
+                getDbConnection().callableStatement.execute();
+                FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_INFO, "Notice", "Data Added Successfully.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
+                clear();
+
+            } catch (Exception e) {
+                System.out.println("ControllerCoopRewards " + e);
+                FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_INFO, "Error", "Database Function Error.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
+            } finally {
+
+                getDbConnection().callableStatement.close();
+                getDbConnection().lportalMemOrgConnection.close();
+
+            }
+        }
     }
 
     public void init() {
         if (FacesContext.getCurrentInstance().isPostback() == false) {
-            setCoopReServices(getCustomEntityManagerFactory().getLportalMemOrgEntityManagerFactory().createEntityManager().createQuery(""
-                    + "SELECT s FROM CoopReServices s ").getResultList());
-
+            System.out.println("acctno" + getCoopRewardsInputModel().getAccountNo());
             clear();
 
         }
@@ -85,8 +168,10 @@ public class CoopRewardsInputModel implements serializable {
     }
 
     public void clear() {
-        setAccountNo(null);
-        setAmount(null);
+        getCoopRewardsInputModel().setAccountNo(null);
+        getCoopRewardsInputModel().setAmount(null);
+        getCoopRewardsInputModel().setServiceName(null);
+        getCoopRewardsInputModel().getCoopRewardsView().setName(null);
 
     }
 
