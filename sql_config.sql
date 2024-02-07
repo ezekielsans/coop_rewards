@@ -1,3 +1,17 @@
+---------------------------------------------------------------------------
+CREATE OR REPLACE VIEW public.coop_rewards_view AS 
+ SELECT DISTINCT cm.sc_acctno,
+    concat(cm.last_name, ', ', cm.first_name, ', ', cm.middle_name) AS name
+   FROM coop_member cm
+UNION
+ SELECT ca.sc_acctno,
+    concat(ca.last_name, ', ', ca.first_name, ', ', ca.middle_name) AS name
+   FROM coop_associate ca;
+
+
+---------------------------------------------------------------------------
+
+
 CREATE TABLE coop_rewards_member
 (
 member_id character varying,
