@@ -69,7 +69,7 @@
                                               value="#{coopRewardsInputModel.accountNo}" >
                                     <p:ajax event="change"
                                             process="@this"
-                                            update="@this,:#{p:component('output')},:#{p:component('submitButton')},:#{p:component('renderMem')}"
+                                            update="@this,:#{p:component('output')},:#{p:component('submitButton')},:#{p:component('renderMem')},:#{p:component('inputAmount')},:#{p:component('serviceType')}"
                                             listener="#{controllerCoopRewards.checkAcctno()}"/>
                                 </p:inputText>
                             </div>
@@ -81,7 +81,8 @@
                             <div class="ui-grid-col-2">
                                 <p:inputText id="inputAmount"
                                              value="#{coopRewardsInputModel.amount}"
-                                             style="text-align: right">
+                                             style="text-align: right"
+                                             disabled="#{empty coopRewardsInputModel.accountNo or coopRewardsInputModel.coopRewardsView.name eq 'Invalid Account Number'}">
                                     <f:convertNumber minFractionDigits="2"
                                                      type="number"
                                                      pattern="###,###.###"/>
@@ -99,7 +100,8 @@
                                 <p:selectOneMenu id="serviceType" 
                                                  value="#{coopRewardsInputModel.serviceName}"
                                                  style="width: 185px"
-                                                 required="true">
+                                                 required="true"
+                                                 disabled="#{empty coopRewardsInputModel.accountNo and empty coopRewardsInputModel.amount or coopRewardsInputModel.coopRewardsView.name eq 'Invalid Account Number'}">
                                     <f:selectItem 
                                         itemLabel="Select Service..."
                                         itemValue="#{null}"/>
@@ -129,7 +131,7 @@
                                               styleClass="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-arrow-1-w"
                                               style="margin-right: 7px"
                                               update=":#{p:component('growl')}"
-                                              disabled="#{empty coopRewardsInputModel.accountNo and empty coopRewardsInputModel.amount }">
+                                              disabled="#{empty coopRewardsInputModel.accountNo and empty coopRewardsInputModel.serviceName or coopRewardsInputModel.coopRewardsView.name eq 'Invalid Account Number'}">
 
                             </p:commandButton>
                             <div class="ui-grid-col-2">
@@ -139,6 +141,7 @@
                                     immediate="true"
                                     ajax="false"
                                     icon=" ui-icon-arrowrefresh-1-w"
+                                    disabled="#{empty coopRewardsInputModel.accountNo and empty coopRewardsInputModel.serviceName}"
                                     styleClass="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-arrow-1-w"
                                     style="margin-right: 7px">
                                     <p:resetInput target="coopRewardsPanel"/>
@@ -159,6 +162,3 @@
         </ui:define>
     </ui:composition>
 </html>
-
-
-
